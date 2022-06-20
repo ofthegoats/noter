@@ -1,0 +1,5 @@
+#+title: Drawer
+
+Drawer is an OpenGL tablet drawing program.
+
+* TODO Implement drawing
