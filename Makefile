@@ -4,11 +4,11 @@
 NAME=$(shell basename $(CURDIR))
 
 CXX=clang++
-CXXFLAGS=-std=c++17 -Wall -Wextra -IGLAD/include -lglfw
+CXXFLAGS=-std=c++17 -Wall -Wextra -Iinclude -lglfw -lXi -lX11
 CC=clang
-CCFLAGS=-std=c17 -IGLAD/include
+CCFLAGS=-std=c17 -Iinclude -lXi -lX11
 LINKER=$(CXX)
-LDFLAGS=-IGLAD/include -lglfw
+LDFLAGS=-Iinclude -lglfw -lXi -lX11
 
 SRCDIR=src
 OBJDIR=obj
@@ -55,6 +55,7 @@ $(OUTPUT): $(OBJ)
 -include $(OBJ:.o=.d)
 
 $(OBJDIR)/%.o: $(SRCDIR)/%.cpp
+	@mkdir -p $(@D)
 	$(CXX) -o $@ $< $(CXXFLAGS) -c -MMD
 	@mv -f $(OBJDIR)/$*.d $(OBJDIR)/$*.d.tmp
 	@sed -e 's|.*:|$(OBJDIR)/$*.o:|' < $(OBJDIR)/$*.d.tmp > $(OBJDIR)/$*.d
@@ -64,6 +65,7 @@ $(OBJDIR)/%.o: $(SRCDIR)/%.cpp
 	@sed -i '/\\\:/d' $(OBJDIR)/$*.d
 
 $(OBJDIR)/%.o: $(SRCDIR)/%.c
+	@mkdir -p $(@D)
 	$(CC) -o $@ $< $(CCFLAGS) -c -MMD
 	@mv -f $(OBJDIR)/$*.d $(OBJDIR)/$*.d.tmp
 	@sed -e 's|.*:|$(OBJDIR)/$*.o:|' < $(OBJDIR)/$*.d.tmp > $(OBJDIR)/$*.d
