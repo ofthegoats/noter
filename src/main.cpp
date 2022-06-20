@@ -25,7 +25,10 @@ int main()
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    glfwWindowHint(GLFW_SAMPLES, 32);
     // glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    // HACK using immediate mode, which is inefficient
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_COMPAT_PROFILE);
     GLFWwindow* window = glfwCreateWindow(800, 600, "drawer", NULL, NULL);
     if (window == NULL) {
         std::cerr << "Failed to create GLFW window" << std::endl;
@@ -47,12 +50,23 @@ int main()
         std::cerr << "Failed to load EasyTab" << std::endl;
     }
 
-    // TODO set up vertices, buffers etc
+    // TODO set up vertices, buffers etc, using modern opengl
+
+    glEnable(GL_MULTISAMPLE_BIT);
+
+    glClear(GL_COLOR_BUFFER_BIT);
+    glfwSwapBuffers(window);
+    glDrawBuffer(GL_FRONT_AND_BACK);
+
+    // x, y, pressure
+    double cursor_last_pos[3];
+    glfwGetCursorPos(window, &cursor_last_pos[0], &cursor_last_pos[1]);
+    cursor_last_pos[2] = 0;
+
+    double const base_radius = 0.006;
 
     while (!glfwWindowShouldClose(window)) {
         process_input(window);
-        glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT);
 
         // normalised x and y position of cursor
         double posx, posy;
@@ -68,9 +82,6 @@ int main()
             posx = 2 * (double)EasyTab->PosX / width - 1;
             posy = -2 * (double)EasyTab->PosY / height + 1;
             pressure = (double)EasyTab->Pressure;
-            std::cout << "x = " << (float)EasyTab->PosX;
-            std::cout << "  y = " << (float)EasyTab->PosY;
-            std::cout << "  p = " << EasyTab->Pressure << std::endl;
         } else {
             glfwGetCursorPos(window, &posx, &posy);
             posx = 2 * posx / width - 1;
@@ -84,6 +95,30 @@ int main()
 #endif
 
         // TODO render here
+        // HACK should use a sprite for the cursor, or nothing
+        glColor3f(1.0f, 0.0f, 0.0f);
+        glBegin(GL_POLYGON);
+        glVertex2d(posx - base_radius * pressure, posy);
+        glVertex2d(posx, posy + base_radius * pressure);
+        glVertex2d(posx + base_radius * pressure, posy);
+        glVertex2d(posx, posy - base_radius * pressure);
+        glEnd();
+        glBegin(GL_POLYGON);
+        glVertex2d(cursor_last_pos[0] - base_radius * cursor_last_pos[2], cursor_last_pos[1]);
+        glVertex2d(cursor_last_pos[0] + base_radius * cursor_last_pos[2], cursor_last_pos[1]);
+        glVertex2d(posx + base_radius * pressure, posy);
+        glVertex2d(posx - base_radius * pressure, posy);
+        glEnd();
+        glBegin(GL_POLYGON);
+        glVertex2d(cursor_last_pos[0], cursor_last_pos[1] - base_radius * cursor_last_pos[2]);
+        glVertex2d(cursor_last_pos[0], cursor_last_pos[1] + base_radius * cursor_last_pos[2]);
+        glVertex2d(posx, posy + base_radius * pressure);
+        glVertex2d(posx, posy - base_radius * pressure);
+        glEnd();
+
+        cursor_last_pos[0] = posx;
+        cursor_last_pos[1] = posy;
+        cursor_last_pos[2] = pressure;
 
         glfwSwapBuffers(window);
         glfwPollEvents();
