@@ -1,0 +1,5 @@
+Just make the window not resizable
+
+* TODO graphics tablet with easytab
+* TODO colours and widths
+use imgui
