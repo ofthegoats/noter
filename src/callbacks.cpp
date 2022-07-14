@@ -22,14 +22,12 @@ extern std::queue<std::queue<std::pair<double, double>>> drawQueue;
 extern std::queue<bool> strokeFinishQueue;
 bool drawing = false;
 
-void mouseButtonCallback(GLFWwindow*, int button, int action, int mods) {
+void mouseButtonCallback(GLFWwindow*, int button, int action, int) {
   if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
-    std::cout << "starting new stroke" << std::endl;
     drawing = true;
     strokeFinishQueue.push(false);
     drawQueue.push(std::queue<std::pair<double, double>>());
   } else if (action == GLFW_RELEASE) {
-    std::cout << "finished stroke" << std::endl;
     drawing = false;
     strokeFinishQueue.back() = true;
   }
@@ -37,7 +35,6 @@ void mouseButtonCallback(GLFWwindow*, int button, int action, int mods) {
 
 void cursorPositionCallback(GLFWwindow *window, double xpos, double ypos) {
   if (drawing) {
-    std::cout << "position callback pushing" << std::endl;
     int width, height;
     glfwGetWindowSize(window, &width, &height);
     drawQueue.front().push({2 * (xpos / width) - 1, 1 - 2 * (ypos / height)});

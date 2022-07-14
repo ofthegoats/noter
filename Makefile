@@ -24,7 +24,7 @@ SRC_C = $(call rwildcard,$(SRCDIR),*.c)
 OBJ_C = $(SRC_C:$(SRCDIR)/%.c=$(OBJDIR)/%.o)
 OBJ= $(OBJ_C) $(OBJ_CXX)
 
-DEBUG ?= 1 # by default, debug
+DEBUG = 1 # by default, debug
 ifeq ($(DEBUG), 1)
 	CFLAGS += -O0 -g
 	CXXFLAGS += -O0 -g

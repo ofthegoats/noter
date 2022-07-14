@@ -66,19 +66,22 @@ int main() {
     // drawing in immediate mode
     glBegin(GL_LINE_STRIP);
     // draw as long as we can
-    while (drawQueue.front().size() >= 2) {
+    bool drew = false;
+    while (drawQueue.size() >= 1 && drawQueue.front().size() > 1) {
       glVertex2d(drawQueue.front().front().first, drawQueue.front().front().second);
       drawQueue.front().pop();
-      glVertex2d(drawQueue.front().front().first, drawQueue.front().front().second);
-      drawQueue.front().pop();
+      drew = true;
     }
+    if (drew && drawQueue.front().size() >= 1) {
+      glVertex2d(drawQueue.front().front().first, drawQueue.front().front().second);
+    }
+    glEnd();
+
     // if we're done, pop the stroke
-    if (drawQueue.front().empty() && strokeFinishQueue.front()) {
-      std::cout << "popping stroke" << std::endl;
+    if (strokeFinishQueue.size() >= 1 && strokeFinishQueue.front()) {
       drawQueue.pop();
       strokeFinishQueue.pop();
     }
-    glEnd();
 
     glfwSwapBuffers(window);
     glfwPollEvents();
