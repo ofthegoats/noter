@@ -8,10 +8,11 @@
 #include <assert.h>
 
 #include "callbacks.hpp"
+#include "enums.hpp"
 
 // queue of strokes containing vertices to draw to
 std::queue<std::queue<std::pair<double, double>>> drawQueue;
-std::queue<bool> strokeFinishQueue;
+std::queue<Signals> signalQueue;
 
 int main() {
   // glfw setup
@@ -61,7 +62,6 @@ int main() {
   glLineWidth(3);
 
   while (!glfwWindowShouldClose(window)) {
-    assert(drawQueue.size() == strokeFinishQueue.size());
 
     // drawing in immediate mode
     glBegin(GL_LINE_STRIP);
@@ -78,10 +78,29 @@ int main() {
     glEnd();
 
     // if we're done, pop the stroke
-    if (strokeFinishQueue.size() >= 1 && strokeFinishQueue.front()) {
-      drawQueue.pop();
-      strokeFinishQueue.pop();
+    while (signalQueue.size() > 0) {
+      switch (signalQueue.front()) {
+      case StrokeStarted: {
+	// nothing to do but wait for the user to finish, need to exit loop
+	goto exit_signal_loop;
+      }
+      case StrokeFinished: {
+	drawQueue.pop();
+	signalQueue.pop();
+	break;
+      }
+      case UndoRequested: {
+	std::cout << "undo here" << std::endl; // TODO
+	signalQueue.pop();
+	break;
+      }
+      case RedoRequested: {
+	break;
+      }
+      default: throw "wrong signal received";
+      }
     }
+  exit_signal_loop:
 
     glfwSwapBuffers(window);
     glfwPollEvents();
