@@ -2,22 +2,21 @@
 
 #include <GLFW/glfw3.h>
 #include <glad/glad.h>
-#include <iostream>
 #include <queue>
 #include <utility>
 
-#include "callbacks.hpp"
-#include "enums.hpp"
+#include "noter.hpp"
+#include "signals.hpp"
 
-void framebufferSizeCallback(GLFWwindow *, int width, int height) {
+
+std::queue<std::queue<std::pair<double, double>>> Noter::drawQueue;
+std::queue<Signals> Noter::signalQueue;
+
+void Noter::framebufferSizeCallback(GLFWwindow *, int width, int height) {
   glViewport(0, 0, width, height);
 }
 
-
-extern std::queue<std::queue<std::pair<double, double>>> drawQueue;
-extern std::queue<Signals> signalQueue;
-
-void keyCallback(GLFWwindow *window, int key, int, int action, int mods) {
+void Noter::keyCallback(GLFWwindow *window, int key, int, int action, int mods) {
   if ((key == GLFW_KEY_Q || key == GLFW_KEY_ESCAPE) && action == GLFW_PRESS) {
     glfwSetWindowShouldClose(window, true);
   }
@@ -36,21 +35,19 @@ void keyCallback(GLFWwindow *window, int key, int, int action, int mods) {
   }
 }
 
-bool drawing = false;
-
-void mouseButtonCallback(GLFWwindow*, int button, int action, int) {
+void Noter::mouseButtonCallback(GLFWwindow*, int button, int action, int) {
   if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
-    drawing = true;
+    userIsDrawing = true;
     signalQueue.push(StrokeStarted);
     drawQueue.push(std::queue<std::pair<double, double>>());
   } else if (action == GLFW_RELEASE) {
-    drawing = false;
+    userIsDrawing = false;
     signalQueue.back() = StrokeFinished;
   }
 }
 
-void cursorPositionCallback(GLFWwindow *window, double xpos, double ypos) {
-  if (drawing) {
+void Noter::cursorPositionCallback(GLFWwindow *window, double xpos, double ypos) {
+  if (userIsDrawing) {
     int width, height;
     glfwGetWindowSize(window, &width, &height);
     drawQueue.front().push({2 * (xpos / width) - 1, 1 - 2 * (ypos / height)});

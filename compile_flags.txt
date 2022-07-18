@@ -2,3 +2,4 @@
 -Wextra
 -Iinclude
 -lglfw
+-std=c++17
