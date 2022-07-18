@@ -1,5 +1,23 @@
-#+title: Drawer
+* Drawer
 
-Drawer is an OpenGL tablet drawing program.
+Drawer is a lightweight OpenGL drawing program.
 
-* TODO Implement drawing
+It aims to be a convenient and small drawing window, suitable to be
+popped up at any time on your desktop for a quick drawing which could
+then be saved/copied and shared.
+
+It is in very early stages of development and as such lacks most
+intended features. These include:
+
+- [ ] undo/redo
+- [ ] multiple colours
+- [ ] variable width
+- [ ] export image
+- [ ] tablet pressure
+
+** Building
+
+Requires [[https://github.com/glfw/glfw][GLFW]], X11.
+
+The inclueded ~Makefile~ contains build instructions, you can simply
+clone the repository and run ~make~. The resulting binary is in ~bin~
