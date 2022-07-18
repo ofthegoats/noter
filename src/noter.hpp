@@ -10,6 +10,7 @@ private:
   static std::queue<Signals> signalQueue;
   inline static bool userIsDrawing = false;
   GLFWwindow *window;
+  unsigned int shaderProgram;
 
   // CALLBACKS
   static void framebufferSizeCallback(GLFWwindow *, int width, int height);

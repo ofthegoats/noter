@@ -4,6 +4,8 @@
 #include <glad/glad.h>
 #include <iostream>
 #include <utility>
+#include <fstream>
+#include <string>
 
 #include "signals.hpp"
 #include "noter.hpp"
@@ -50,6 +52,58 @@ Noter::Noter() {
   glClear(GL_COLOR_BUFFER_BIT);
   glfwSwapBuffers(window);
   glClear(GL_COLOR_BUFFER_BIT);
+
+  // Compile and link shaders
+  //?TODO read shader files AT COMPILE TIME (but they are compiled and linked at runtime)
+  int success;
+  char infoLog[512];
+  const char *vertexShaderSource = R"(
+#version 330 core
+
+layout (location = 0) in vec2 aPos;
+
+void main() {
+  gl_Position = vec4(aPos, 0.0, 1.0);
+}
+)";
+  unsigned int vertexShader = glCreateShader(GL_VERTEX_SHADER);
+  glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
+  glCompileShader(vertexShader);
+  glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
+  if (!success) {
+    std::cerr << "Noter::Noter > Failed to build vertex shader > " << infoLog << std::endl;
+    std::exit(1);
+  }
+  const char *fragmentShaderSource = R"(
+#version 330 core
+
+out vec4 FragColor;
+
+void main() {
+  FragColor = vec4(0.8, 0.141176470588, 0.113725490196, 1.0f);
+}
+)";
+  unsigned int fragmentShader = glCreateShader(GL_VERTEX_SHADER);
+  glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
+  glCompileShader(fragmentShader);
+  glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &success);
+  if (!success) {
+    std::cerr << "Noter::Noter > Failed to build fragment shader > " << infoLog << std::endl;
+    std::exit(1);
+  }
+  shaderProgram = glCreateProgram();
+  glAttachShader(shaderProgram, vertexShader);
+  glAttachShader(shaderProgram, fragmentShader);
+  glLinkProgram(shaderProgram);
+  glGetShaderiv(shaderProgram, GL_LINK_STATUS, &success);
+  if (!success) {
+    std::cerr << "Noter::Noter > Failed to link shader > " << infoLog << std::endl;
+    std::exit(1);
+  }
+  glDeleteShader(vertexShader);
+  glDeleteShader(fragmentShader);
+
+  // TODO create buffers for OpenGL
 }
 
 Noter::~Noter() {
