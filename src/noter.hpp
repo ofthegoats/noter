@@ -11,6 +11,8 @@ private:
   inline static bool userIsDrawing = false;
   GLFWwindow *window;
   unsigned int shaderProgram;
+  unsigned int VAO;
+  unsigned int VBO;
 
   // CALLBACKS
   static void framebufferSizeCallback(GLFWwindow *, int width, int height);

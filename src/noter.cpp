@@ -20,7 +20,7 @@ Noter::Noter() {
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
   glfwWindowHint(GLFW_SAMPLES, 4);
-  glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_COMPAT_PROFILE);
+  glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
   glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
   glfwWindowHint(GLFW_DECORATED, GLFW_FALSE);
   glfwWindowHint(GLFW_FLOATING, GLFW_TRUE);
@@ -83,7 +83,7 @@ void main() {
   FragColor = vec4(0.8, 0.141176470588, 0.113725490196, 1.0f);
 }
 )";
-  unsigned int fragmentShader = glCreateShader(GL_VERTEX_SHADER);
+  unsigned int fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
   glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
   glCompileShader(fragmentShader);
   glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &success);
@@ -103,7 +103,11 @@ void main() {
   glDeleteShader(vertexShader);
   glDeleteShader(fragmentShader);
 
-  // TODO create buffers for OpenGL
+  // NOTE because the object to draw changes often, initialization code is in Noter::run
+  glGenVertexArrays(1, &VAO);
+  glGenBuffers(1, &VBO);
+  glBindVertexArray(VAO);
+  glBindBuffer(GL_ARRAY_BUFFER, VBO);
 }
 
 Noter::~Noter() {
@@ -111,24 +115,32 @@ Noter::~Noter() {
 }
 
 void Noter::run() {
-  // for now, only one drawing colour and width is available
-  glColor3f((float)204 / 255, (float)36 / 255, (float)29 / 255);
+  // for now, only one line width is possible
   glLineWidth(3);
-
+  // for now, the colour of the line is hardcoded in the fragment shader
+  // later it would be better to use layouts and interact with an imgui window
   while (!glfwWindowShouldClose(window)) {
-    // drawing in immediate mode
-    glBegin(GL_LINE_STRIP);
     // draw as long as we can
     bool drew = false;
+    std::vector<double> vertices;
     while (drawQueue.size() >= 1 && drawQueue.front().size() > 1) {
-      glVertex2d(drawQueue.front().front().first, drawQueue.front().front().second);
+      vertices.push_back(drawQueue.front().front().first);
+      vertices.push_back(drawQueue.front().front().second);
       drawQueue.front().pop();
       drew = true;
     }
-    if (drew && drawQueue.front().size() >= 1) {
-      glVertex2d(drawQueue.front().front().first, drawQueue.front().front().second);
+    if (drew && drawQueue.front().size() > 0) {
+      vertices.push_back(drawQueue.front().front().first);
+      vertices.push_back(drawQueue.front().front().second);
     }
-    glEnd();
+    if (drew) {
+      glBindBuffer(GL_ARRAY_BUFFER, VBO);
+      glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(double), vertices.data(), GL_STREAM_DRAW);
+      glVertexAttribPointer(0, 2, GL_DOUBLE, GL_FALSE, 0, (void*)0);
+      glEnableVertexAttribArray(0);
+      glUseProgram(shaderProgram);
+      glDrawArrays(GL_LINE_STRIP, 0, vertices.size() / 2);
+    }
 
     // if we're done, pop the stroke
     while (signalQueue.size() > 0) {
@@ -138,9 +150,9 @@ void Noter::run() {
 	goto exit_signal_loop;
       }
       case StrokeFinished: {
-	drawQueue.pop();
-	signalQueue.pop();
-	break;
+	  drawQueue.pop();
+	  signalQueue.pop();
+	  break;
       }
       case UndoRequested: {
 	std::cout << "undo here" << std::endl; // TODO
